@@ -46,22 +46,35 @@ def plotar_cobertura_por_fonte(fonte: pd.Series) -> Figure:
     partes = fonte.value_counts(normalize=True).reindex(ordem).fillna(0)
     cores = [CINZA_ESCURO, CINZA_MEDIO, ACENTO, ACENTO_ALERTA]
 
-    fig, ax = plt.subplots(figsize=(9, 2.6))
+    # Só a primeira fatia (Gold) é larga o bastante pro rótulo caber dentro dela.
+    # As demais ficam lado a lado e estreitas — o rótulo vai por fora, com linha
+    # de chamada, alternando acima/abaixo pra não colidir com a vizinha.
+    LARGURA_MINIMA_INTERNA = 0.2
+    fig, ax = plt.subplots(figsize=(9, 3.2))
     esquerda = 0.0
+    lado = 1
     for valor, cor, chave in zip(partes, cores, ordem):
         ax.barh([0], [valor], left=esquerda, color=cor, height=0.55)
+        centro = esquerda + valor / 2
         if valor > 0.015:
-            ax.text(
-                esquerda + valor / 2,
-                0,
-                f"{rotulos[chave]}\n{valor:.2%}",
-                ha="center",
-                va="center",
-                color="white" if chave != "agregado_r3" else "white",
-                fontsize=9,
-            )
+            rotulo = f"{rotulos[chave]}\n{valor:.2%}"
+            if valor >= LARGURA_MINIMA_INTERNA:
+                ax.text(centro, 0, rotulo, ha="center", va="center", color="white", fontsize=9)
+            else:
+                y_texto = lado * 0.95
+                ax.annotate(
+                    rotulo,
+                    xy=(centro, 0.28 * lado),
+                    xytext=(centro, y_texto),
+                    ha="center",
+                    va="bottom" if lado > 0 else "top",
+                    fontsize=8,
+                    arrowprops=dict(arrowstyle="-", color=CINZA_MEDIO, lw=0.8),
+                )
+                lado *= -1
         esquerda += valor
     ax.set_yticks([])
+    ax.set_ylim(-1.3, 1.3)
     ax.set_xlim(0, 1)
     ax.set_xlabel("fração da coorte de 2024")
     ax.grid(False)
@@ -101,6 +114,10 @@ def plotar_auc_univariada(quadro: pd.DataFrame, titulo: str, n_maximo: int = 22)
             ha="right" if auc < 0.5 else "left",
             fontsize=8,
         )
+    # Sem isso o xlim vem só do range das barras, e o texto (ha="right"/"left" na
+    # ponta) estoura pra fora dos eixos e cai em cima do yticklabel vizinho.
+    margem = 0.07
+    ax.set_xlim(dados["auc"].min() - margem, dados["auc"].max() + margem)
     ax.set_yticks(y, dados["feature"])
     ax.set_xlabel("ROC-AUC univariada do risco de não alfabetização")
     ax.set_title(titulo)
@@ -157,6 +174,6 @@ def plotar_replica_b5(replica: pd.DataFrame) -> Figure:
     ax.axvline(0, color=CINZA_ESCURO, linewidth=1)
     ax.set_yticks(range(len(comparacoes)), comparacoes)
     ax.set_ylim(-0.5, len(comparacoes) - 0.3)
-    ax.set_xlabel("Delta ROC-AUC pareado por fold (15 folds: 5 dobras × 3 seeds)")
+    ax.set_xlabel("Δ ROC-AUC pareado por fold (15 folds: 5 dobras × 3 seeds)")
     ax.set_title("Réplica do experimento B5: o ganho é menor que a dispersão entre folds")
     return fig
