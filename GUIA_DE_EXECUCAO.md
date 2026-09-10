@@ -42,10 +42,11 @@ da próxima seção.
 
 **A dependência que este repositório não resolve sozinho.** A camada Gold, de 615 MB, é a saída de
 um pipeline PySpark que roda em Databricks e não está versionada. O código que a produz está em
-[`scripts/etl/`](scripts/etl), mas regenerá-la exige acesso a um workspace. Para executar o projeto
-é preciso obter o CSV com o grupo e colocá-lo em
-`data/raw/alfabetizacao_aluno/alfabetizacao_aluno_features_2023-2024_20260829.csv`. Clonar o
-repositório não traz esse arquivo, e o manifesto confere a versão sem substituir o fornecimento.
+[`scripts/etl/`](scripts/etl), mas regenerá-la exige acesso a um workspace. Clonar o repositório não
+traz esse arquivo, e o manifesto confere a versão sem substituir o fornecimento. Os links do Drive
+para a Gold e para o microdado INEP estão em
+[`data/README.md`](data/README.md#origem-de-cada-base), na seção "Origem de cada base"; rodar
+`python scripts/prepare_data.py --load_data` baixa os dois direto para `data/raw/`.
 
 Os seis CSVs do INEP, que somam 216 MB, são públicos e vêm do
 [Base dos Dados](https://basedosdados.org/), conjunto `br_inep_avaliacao_alfabetizacao`. Eles vão em

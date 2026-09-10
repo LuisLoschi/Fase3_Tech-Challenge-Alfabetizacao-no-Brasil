@@ -1,10 +1,12 @@
 """Converte os CSVs brutos em Parquet, um arquivo por ano.
 
 Motivação: a Gold tem 615 MB e o microdado 214 MB em CSV. Lidos com dtypes
-largos, os dois juntos não cabem na memória disponível.
+largos, os dois juntos não cabem confortavelmente na memória disponível.
+A conversão é feita em streaming (lotes do pyarrow), com tipos estreitos e
+compressão zstd, e o resultado é lido depois em segundos.
 
 Uso:
-    python scripts/prepare_data.py [--force]
+    python scripts/prepare_data.py [--force] [--load_data]
 """
 
 import argparse
@@ -12,13 +14,14 @@ import logging
 import sys
 from pathlib import Path
 
+import gdown
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.csv as pacsv
 import pyarrow.parquet as pq
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from src import config  
+from src import config  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,7 +33,7 @@ log = logging.getLogger(__name__)
 TAMANHO_LOTE = 500_000
 
 # ---------------------------------------------------------------------------
-# Esquemas 
+# Esquemas — tipos estreitos, escolhidos a partir dos valores reais das bases
 # ---------------------------------------------------------------------------
 TIPOS_GOLD = {
     "ano": pa.int16(),
@@ -71,7 +74,23 @@ TIPOS_ALUNO = {
     "peso_aluno": pa.float32(),
 }
 
+# ---------------------------------------------------------------------------
+# Download opcional dos CSVs brutos (não versionados) via --load_data
+# ---------------------------------------------------------------------------
+ARQUIVOS_DRIVE = {
+    config.CSV_GOLD: "12IvWA_e4bsV2wgwKdg3-1_-W82wBtA8i",
+    config.CSV_ALUNO: "15mL_WihTkVceMJcGvAAxvpOg7DLrWg1o",
+}
 
+
+def baixar_dados(arquivos: dict = ARQUIVOS_DRIVE) -> None:
+    """Baixa do Drive os CSVs brutos que o repositório não versiona."""
+    for destino, file_id in arquivos.items():
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        log.info("baixando %s do Drive", destino.name)
+        gdown.download(id=file_id, output=str(destino), quiet=False)
+        
+        
 def converter(origem: Path, destino_template: str, tipos: dict, descartar: tuple = ()) -> dict:
     """Lê um CSV em lotes e grava um Parquet por ano. Devolve as contagens."""
     if not origem.exists():
@@ -115,7 +134,15 @@ def converter(origem: Path, destino_template: str, tipos: dict, descartar: tuple
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--force", action="store_true", help="reconverte mesmo se o Parquet já existir")
+    parser.add_argument(
+        "--load_data",
+        action="store_true",
+        help="baixa do Drive a Gold e o microdado INEP antes de converter (ver data/README.md)",
+    )
     args = parser.parse_args()
+
+    if args.load_data:
+        baixar_dados()
 
     tarefas = (
         ("Gold (grão aluno, alvo de 2024)", config.CSV_GOLD, str(config.PARQUET_GOLD), TIPOS_GOLD, config.COLS_AUDITORIA),

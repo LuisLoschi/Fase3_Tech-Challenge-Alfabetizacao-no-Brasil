@@ -83,7 +83,12 @@ def plotar_capacidade(capacidade: pd.DataFrame, prevalencia: float) -> Figure:
     ax.plot(x, capacidade["precisao"] * 100, "s-", color=CINZA_ESCURO, linewidth=1.6, label="precisão do alerta")
     ax.plot(x, x, color=CINZA_MEDIO, linestyle=":", linewidth=1.2, label="sorteio aleatório")
     ax.axhline(prevalencia * 100, color=ACENTO_ALERTA, linestyle="--", linewidth=1)
-    ax.text(1, prevalencia * 100 + 1.2, f"prevalência {prevalencia:.1%}", color=ACENTO_ALERTA, fontsize=8)
+    # x em fração dos eixos (não em dado): x=1 supunha eixo começando perto de 0,
+    # mas `fracao_atendida` começa em 5% e o rótulo caía por fora, sobre o eixo Y.
+    ax.text(
+        0.01, prevalencia * 100 + 1.2, f"prevalência {prevalencia:.1%}",
+        color=ACENTO_ALERTA, fontsize=8, transform=ax.get_yaxis_transform(),
+    )
     ax.set_xlabel("% da coorte atendida, do maior risco para o menor")
     ax.set_ylabel("%")
     ax.set_title("Cenários de capacidade orçamentária")

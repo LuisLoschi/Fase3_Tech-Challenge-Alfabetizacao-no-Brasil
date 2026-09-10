@@ -36,9 +36,15 @@ descreve o que a coisa é: dimensão de apoio, pequena, versionada, regenerável
 python -m venv .venv && .venv\Scripts\Activate.ps1   # bash: source .venv/Scripts/activate
 pip install -r requirements.txt
 
-python scripts/prepare_data.py          # CSV → Parquet em data/interim/ (~10 s)
-python scripts/build_dim_municipio.py   # dimensão territorial em data/reference/
-pytest -q                               # 24 testes de integridade dos dados
+python scripts/prepare_data.py --load_data   # baixa a Gold e o microdado do Drive (ver abaixo)
+python scripts/prepare_data.py               # CSV → Parquet em data/interim/ (~10 s)
+python scripts/build_dim_municipio.py        # dimensão territorial em data/reference/
+pytest -q                                    # 24 testes de integridade dos dados
+```
+
+`--load_data` é opcional e só precisa rodar uma vez: baixa os dois CSVs do Drive (ver
+"Origem de cada base" abaixo) direto para `raw/alfabetizacao_aluno/` e `raw/inep/`. Sem
+ele, os arquivos precisam ser colocados manualmente nesses caminhos antes da conversão.                             # 24 testes de integridade dos dados
 ```
 
 ## Origem de cada base
@@ -61,10 +67,17 @@ produzida por `build_ml_feature_table()` em `scripts/etl/etl-gold.py` e exportad
 > roda em `mode("overwrite")` sem carga incremental, então duas execuções produzem
 > conteúdos diferentes; sem o timestamp no nome não há como saber qual está em disco.
 
-> **Pendente de decisão do grupo:** um clone limpo deste repositório não consegue
-> reproduzir a Gold sem acesso a um workspace Databricks. As duas saídas possíveis são
-> publicar o CSV em um GitHub Release ou Drive e linkar aqui, ou declarar explicitamente
-> no README que a execução completa depende da Gold fornecida pelo grupo.
+> **Download dos CSVs.** Um clone limpo deste repositório não consegue reproduzir a Gold
+> sem acesso a um workspace Databricks, e o microdado do INEP também não é versionado.
+> Os dois arquivos estão publicados no Drive:
+>
+> - `alfabetizacao_aluno_features_2023-2024_20260829.csv` (Gold):
+>   https://drive.google.com/file/d/12IvWA_e4bsV2wgwKdg3-1_-W82wBtA8i/view?usp=sharing
+> - `br_inep_avaliacao_alfabetizacao_aluno.csv` (microdado INEP):
+>   https://drive.google.com/file/d/15mL_WihTkVceMJcGvAAxvpOg7DLrWg1o/view?usp=sharing
+>
+> Baixe os dois e rode `python scripts/prepare_data.py --load_data` para copiá-los aos
+> respectivos diretórios em `raw/` antes da conversão (ver seção "Como reconstruir").
 
 ## Contagens de referência
 
