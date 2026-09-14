@@ -13,7 +13,7 @@ ETAPAS = {
     "modelos": [["scripts/experimento_b5.py"], ["-m", "src.modeling.train", "tuning"],
                 ["-m", "src.modeling.train", "comparacao"], ["-m", "src.modeling.train", "campeao"],
                 ["-m", "src.evaluation.rigor"], ["-m", "src.evaluation.interpret"]],
-    "relatorios": [["-m", "src.modeling.strategic"], ["scripts/atualizar_relatorios.py"]],
+    "relatorios": [["-m", "src.modeling.strategic"]],
 }
 
 
