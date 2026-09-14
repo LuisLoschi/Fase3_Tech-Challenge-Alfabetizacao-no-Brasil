@@ -336,9 +336,9 @@ Há 56 municípios excluídos por campos faltantes. Os grupos se sobrepõem e de
 | faixa intermediária | 2941 | 73,4% |
 | risco alto e cobertura menor | 2142 | 43,9% |
 
-- Sul e Sudeste: mais representativos do perfil consolidado.
-- Norte e Nordeste: maior presença do perfil de risco alto e cobertura menor.
-- Centro-Oeste e regiões de transição: componente misto, com maior representatividade do perfil intermediário.
+- Nordeste é a região mais representada no perfil consolidado (67% dos municípios do grupo), seguida por Sudeste (21%); Sul é quase ausente nesse perfil.
+- Nordeste e Norte concentram a maior parte do perfil de risco alto e cobertura menor (48% e 14%, respectivamente), somando 62% do grupo.
+- Sudeste e Sul dominam o perfil intermediário (41% e 27%, respectivamente), somando 68% do grupo; Centro-Oeste tem participação menor (11%).
 
 Essa estrutura sugere que o território brasileiro não é homogêneo: há um conjunto de municípios com alfabetização já consolidada, um grupo grande em faixa intermediária e outro com risco mais elevado e menor cobertura de dados. A visualização ajuda a reconhecer padrões regionais e a orientar políticas que diferenciem estratégias por perfil, em vez de tratar todos os municípios como se compartilhassem o mesmo contexto educativo.
 
