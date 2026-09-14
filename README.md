@@ -13,6 +13,7 @@ utilizando soluções analíticas e modelos de Machine Learning capazes de gerar
 
 - [Contexto do problema](#contexto-do-problema)
 - [Objetivo analítico](#objetivo-analítico)
+- [Insights encontrados](#insights-encontrados)
 - [Descrição da base utilizada](#descrição-da-base-utilizada)
 - [Estrutura do repositório](#estrutura-do-repositório)
 - [Como reproduzir](#como-reproduzir)
@@ -47,6 +48,19 @@ Desenvolver uma **pipeline completa de Machine Learning supervisionado** capaz d
 - **Mapeamento de Risco:** Quais municípios ou regiões apresentam maior risco de descumprimento das metas educacionais?
 - **Agrupamento Territorial:** Quais regiões possuem padrões educacionais e socioeconômicos semelhantes?
 - **Suporte à Decisão:** Como utilizar as predições do modelo para alocação eficiente de recursos do FUNDEB e ações preventivas do Ministério da Educação e Secretarias Estaduais/Municipais?
+
+<a id="insights-encontrados"></a>
+## 💡 Insights encontrados
+
+- *O modelo é essencialmente territorial.* Histórico municipal (57,2%) e contexto territorial de UF/região (27,6%) explicam juntos 84,8% do comportamento do modelo — o SHAP aponta o peso do ambiente onde o aluno estuda, não uma característica individual da criança.
+- *Uma única variável concentra um terço da importância.* A média municipal de Língua Portuguesa em 2023 responde por 33% do SHAP, reforçando que o histórico recente do território pesa mais do que qualquer atributo estrutural isolado.
+- *O algoritmo não é o gargalo.* O ganho do LightGBM sobre uma heurística simples de uma variável é de apenas ~0,027 de ROC-AUC — evidência de que o teto de desempenho está nas fontes de dados disponíveis, não na complexidade do modelo.
+- *O território brasileiro não é homogêneo.* Emergem 3 perfis nítidos (consolidado 92,6%, intermediário 73,4%, risco alto 43,9%), com concentração regional que foge da intuição comum: Nordeste domina o perfil consolidado (67% dos municípios), Nordeste+Norte concentram o perfil de risco alto e menor cobertura (62%), e Sudeste+Sul concentram o perfil intermediário (68%).
+- *Priorizar por taxa ou por volume muda o resultado.* Ordenar municípios por taxa de vulnerabilidade e por volume absoluto de alunos em risco produz rankings diferentes — a escolha da métrica de priorização altera quem aparece no topo.
+- *A maioria já está perto da meta de 2025, mas o restante não é trivial.* 43,4% dos municípios já superam a meta de 2025 com a taxa de 2024, porém o gap mediano remanescente (2,24 p.p.) exige esforço real em rede — e o próprio modelo de projeção, avaliado fora do ajuste, não supera um baseline simples (ROC-AUC 0,5455, intervalo de ganho de Brier que inclui zero), sinalizando alta incerteza sobre a trajetória futura.
+- *Importância deve ser lida por família, não por coluna.* Dez das vinte features, quando removidas isoladamente, não superam o piso de ruído — a leitura correta considera blocos correlacionados de atributos, não colunas isoladas.
+
+> Para o detalhamento pergunta a pergunta (fatores, risco municipal, agrupamento regional, metas futuras e variáveis mais influentes), veja a seção [Conclusão](#conclusao).
 
 <a id="descrição-da-base-utilizada"></a>
 ## 📝 Descrição da base utilizada
