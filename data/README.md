@@ -42,42 +42,27 @@ python scripts/build_dim_municipio.py        # dimensão territorial em data/ref
 pytest -q                                    # 24 testes de integridade dos dados
 ```
 
-`--load_data` é opcional e só precisa rodar uma vez: baixa os dois CSVs do Drive (ver
-"Origem de cada base" abaixo) direto para `raw/alfabetizacao_aluno/` e `raw/inep/`. Sem
-ele, os arquivos precisam ser colocados manualmente nesses caminhos antes da conversão.                             # 24 testes de integridade dos dados
-```
+`--load_data` é opcional e só precisa rodar uma vez, baixa os dois CSVs do Drive (ver "Origem de cada base" abaixo) direto para `raw/alfabetizacao_aluno/` e `raw/inep/`. Sem ele, os arquivos precisam ser colocados manualmente nesses caminhos antes da conversão.                             
 
 ## Origem de cada base
 
-**`raw/inep/*.csv`** — Avaliação de Alfabetização (ALFA) do INEP, anos 2023 e 2024,
-distribuída pelo [Base dos Dados](https://basedosdados.org/) sob o conjunto
-`br_inep_avaliacao_alfabetizacao`. São seis arquivos: microdado de aluno, agregados de
-município e UF, e metas de município, UF e Brasil.
+**`raw/inep/*.csv`** — Avaliação de Alfabetização (ALFA) do INEP, anos 2023 e 2024, distribuída pelo [Base dos Dados](https://basedosdados.org/) sob o conjunto `br_inep_avaliacao_alfabetizacao`. São seis arquivos: microdado de aluno, agregados de município e UF, e metas de município, UF e Brasil.
 
 **`raw/alfabetizacao_aluno/alfabetizacao_aluno_features_2023-2024_20260829.csv`** — não é
-base pública: é a saída de um pipeline medalhão (Bronze → Silver → Gold) em
-PySpark/Databricks, cujo código está em [`scripts/etl/`](../scripts/etl). A tabela é
-produzida por `build_ml_feature_table()` em `scripts/etl/etl-gold.py` e exportada para CSV.
+base pública: é a saída de um pipeline medalhão (Bronze → Silver → Gold) em PySpark/Databricks, cujo código está em [`scripts/etl/`](../scripts/etl). A tabela é produzida por `build_ml_feature_table()` em `scripts/etl/etl-gold.py` e exportada para CSV.
 
-> **Sobre o nome do arquivo.** Ele carrega três coisas que o nome anterior
-> (`camada-gold-databricks.csv`) não carregava: a **tabela de origem**
-> (`alfabetizacao_aluno_features`, que é a `GOLD_ML_TABLE` do ETL, e não a outra tabela
-> Gold, `alfabetizacao_analise_output`), o **período** e o **timestamp da extração** —
-> `20260829`, que é o `_gold_processing_timestamp` gravado dentro do próprio CSV. O ETL
-> roda em `mode("overwrite")` sem carga incremental, então duas execuções produzem
-> conteúdos diferentes; sem o timestamp no nome não há como saber qual está em disco.
+> **Sobre o nome do arquivo, Ele carrega três coisas que o nome anterior (`camada-gold-databricks.csv`) não carregava:** a **tabela de origem** (`alfabetizacao_aluno_features`, que é a `GOLD_ML_TABLE` do ETL, e não a outra tabela Gold, `alfabetizacao_analise_output`), o **período** e o **timestamp da extração** — `20260829`, que é o `_gold_processing_timestamp` gravado dentro do próprio CSV. O ETL roda em `mode("overwrite")` sem carga incremental, então duas execuções produzem conteúdos diferentes, sem o timestamp no nome não há como saber qual está em disco.
 
-> **Download dos CSVs.** Um clone limpo deste repositório não consegue reproduzir a Gold
-> sem acesso a um workspace Databricks, e o microdado do INEP também não é versionado.
-> Os dois arquivos estão publicados no Drive:
+> **Download dos CSVs:** Um clone limpo deste repositório não consegue reproduzir a Gold sem acesso a um workspace databricks, e o microdado do INEP também não é versionado.
+>
+>Os dois arquivos estão publicados no Drive:
 >
 > - `alfabetizacao_aluno_features_2023-2024_20260829.csv` (Gold):
 >   https://drive.google.com/file/d/12IvWA_e4bsV2wgwKdg3-1_-W82wBtA8i/view?usp=sharing
 > - `br_inep_avaliacao_alfabetizacao_aluno.csv` (microdado INEP):
 >   https://drive.google.com/file/d/15mL_WihTkVceMJcGvAAxvpOg7DLrWg1o/view?usp=sharing
 >
-> Baixe os dois e rode `python scripts/prepare_data.py --load_data` para copiá-los aos
-> respectivos diretórios em `raw/` antes da conversão (ver seção "Como reconstruir").
+> Baixe os dois e rode `python scripts/prepare_data.py --load_data` para copiá-los aos respectivos diretórios em `raw/` antes da conversão (ver seção "Como reconstruir").
 
 ## Contagens de referência
 
@@ -91,42 +76,22 @@ Travadas em `tests/test_dados.py` — se mudarem, algum insumo foi trocado.
 | UFs na Gold | 23 | 26 |
 | Municípios na dimensão | — | 5.547 em 26 UFs (Roraima ausente) |
 
-**A Gold é o microdado filtrado, e isso é provado, não suposto.** Nos dois anos o conjunto
-de `id_aluno` da Gold é idêntico ao dos presentes no microdado, sem duplicata, e
-`alfabetizado` não diverge em nenhuma das 3.355.846 comparações. A Gold perde exatamente
-512.153 linhas (as de `presenca = 0`) e três colunas: `presenca`, `proficiencia` e
-`peso_aluno`.
+**A Gold é o microdado filtrado, e isso é provado, não suposto.** Nos dois anos o conjunto de `id_aluno` da Gold é idêntico ao dos presentes no microdado, sem duplicata, e `alfabetizado` não diverge em nenhuma das 3.355.846 comparações. A Gold perde exatamente 512.153 linhas (as de `presenca = 0`) e três colunas: `presenca`, `proficiencia` e `peso_aluno`.
 
 ## Quatro armadilhas de join
 
-1. **Códigos de `rede` divergem entre as bases.** Gold e microdado: `2` Estadual,
-   `3` Municipal, `4` Privada. Agregados do INEP: `2`, `3`, `5` Pública, `0` Total.
+1. **Códigos de `rede` divergem entre as bases.** Gold e microdado: `2` Estadual, `3` Municipal, `4` Privada. Agregados do INEP: `2`, `3`, `5` Pública, `0` Total.
 
-2. **A escolha da rede no agregado depende do propósito.** Para *reconciliar*, use
-   `rede = 5`, que é a mais fiel (MAE 0,99pp em 2023 e 0,37pp em 2024) — é o que
-   `loader.carregar_agregado_municipio(apenas_publica=True)` faz. Para *construir lag*,
-   é preciso coalescer `5 → 3`: dos 676 municípios que existem em 2024 sem microdado de
-   2023, `rede = 5` cobre 79 e `rede = 3` cobre 625, incluindo São Paulo inteiro. Só
-   rede 5 resgata 12,33% da coorte; a coalescência resgata 21,20%. Ver
-   `config.REDE_AGREGADO_COALESCENCIA`.
+2. **A escolha da rede no agregado depende do propósito.** Para *reconciliar*, use `rede = 5`, que é a mais fiel (MAE 0,99pp em 2023 e 0,37pp em 2024) — é o que `loader.carregar_agregado_municipio(apenas_publica=True)` faz. Para *construir lag*, é preciso coalescer `5 → 3`: dos 676 municípios que existem em 2024 sem microdado de 2023, `rede = 5` cobre 79 e `rede = 3` cobre 625, incluindo São Paulo inteiro. Só rede 5 resgata 12,33% da coorte; a coalescência resgata 21,20%. Ver `config.REDE_AGREGADO_COALESCENCIA`.
 
-3. **O microdado não tem UF**, só `id_municipio`. Qualquer agregado de UF para 2023
-   depende de `reference/dim_municipio.csv`, gerado por `scripts/build_dim_municipio.py`.
+3. **O microdado não tem UF**, só `id_municipio`. Qualquer agregado de UF para 2023 depende de `reference/dim_municipio.csv`, gerado por `scripts/build_dim_municipio.py`.
 
-4. **`peso_aluno` não é descartável.** É o fator oficial de correção de não-resposta do
-   INEP: a taxa que o INEP publica é a média de `alfabetizado` ponderada por ele. Com o
-   peso a reconciliação municipal cai de 0,99pp para 0,05pp. Todo número populacional do
-   projeto é ponderado; como preditor a coluna continua proibida. Ver `config.COL_PESO`.
+4. **`peso_aluno` não é descartável.** É o fator oficial de correção de não-resposta do INEP: a taxa que o INEP publica é a média de `alfabetizado` ponderada por ele. Com o peso a reconciliação municipal cai de 0,99pp para 0,05pp. Todo número populacional do projeto é ponderado; como preditor a coluna continua proibida. Ver `config.COL_PESO`.
 
 ## Limitações de cobertura a declarar
 
 - **Roraima está ausente** de toda a base: 26 UFs, não 27.
-- **SP, DF e AC só existem em 2024** no microdado e na Gold. São 99,9% dos 23,11% de
-  alunos de 2024 sem histórico municipal — o gap não é ruído difuso, são três UFs
-  inteiras. A coalescência do item 2 reduz o gap residual a 1,91%.
+- **SP, DF e AC só existem em 2024** no microdado e na Gold. São 99,9% dos 23,11% de alunos de 2024 sem histórico municipal — o gap não é ruído difuso, são três UFs inteiras. A coalescência do item 2 reduz o gap residual a 1,91%.
 - **79 municípios** têm taxa publicada pelo INEP em 2023 e zero alunos no microdado.
-- **O município 5219308** tem 410 alunos em 2023, todos ausentes, e por isso fica fora da
-  Gold e da `dim_municipio` (5.547 municípios, contra 5.548 no microdado).
-- **1.185 alunos** (249 em 2023, 936 em 2024) têm `presenca = 1` e proficiência nula, e
-  receberam `alfabetizado = 0` do ETL. O alvo deles não é desfecho, é registro faltante;
-  saem do treino.
+- **O município 5219308** tem 410 alunos em 2023, todos ausentes, e por isso fica fora da Gold e da `dim_municipio` (5.547 municípios, contra 5.548 no microdado).
+- **1.185 alunos** (249 em 2023, 936 em 2024) têm `presenca = 1` e proficiência nula, e receberam `alfabetizado = 0` do ETL. O alvo deles não é desfecho, é registro faltante, saem do treino.
